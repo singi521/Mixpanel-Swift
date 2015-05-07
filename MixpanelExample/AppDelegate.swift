@@ -8,6 +8,8 @@
 
 import UIKit
 
+let MIXPANEL_TOKEN:String = "cdd814702fc7dbc54982a8d83da1b3ea"
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -16,6 +18,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        Mixpanel.sharedInstanceWithToken(MIXPANEL_TOKEN)
+        
+        var types: UIUserNotificationType = UIUserNotificationType.Badge |
+            UIUserNotificationType.Alert |
+            UIUserNotificationType.Sound
+        
+        var settings: UIUserNotificationSettings = UIUserNotificationSettings( forTypes: types, categories: nil )
+        
+        application.registerUserNotificationSettings( settings )
+        application.registerForRemoteNotifications()
+        
+        
         return true
     }
 
@@ -39,6 +53,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+    
+    func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
+        println("error:\(error.debugDescription)")
+        Mixpanel.sharedInstance().identify("fb00123")
+    }
+    
+    func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
+        Mixpanel.sharedInstance().identify("fb00123")
+        Mixpanel.sharedInstance().people.addPushDeviceToken(deviceToken)
+        
+        // <>と" "(空白)を取る
+        var characterSet: NSCharacterSet = NSCharacterSet( charactersInString: "<>" )
+        
+        var deviceTokenString: String = ( deviceToken.description as NSString )
+            .stringByTrimmingCharactersInSet( characterSet )
+            .stringByReplacingOccurrencesOfString( " ", withString: "" ) as String
+        
+        println( deviceTokenString )
     }
 
 
